@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OLTA Investment Screener</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #080c10;
+    --surface: #0e1318;
+    --surface2: #141a21;
+    --border: #1e2830;
+    --text: #e8edf2;
+    --muted: #5a6a78;
+    --accent: #00c896;
+    --gold: #f5c842;
+    --silver: #a0b0c0;
+    --bronze: #c87840;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.4;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  /* Header */
+  .header {
+    margin-bottom: 48px;
+    animation: fadeDown 0.6s ease both;
+  }
+
+  .header-tag {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+
+  .header h1 span {
+    color: var(--accent);
+  }
+
+  .header-sub {
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  /* Stats bar */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 36px;
+    animation: fadeDown 0.6s 0.1s ease both;
+  }
+
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .stat-val {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .stat-label {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  /* Cards */
+  .cards {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    opacity: 0;
+    animation: fadeUp 0.5s ease forwards;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .card:hover {
+    border-color: #2e3d4d;
+    transform: translateY(-2px);
+  }
+
+  .card--gold { border-left: 3px solid var(--gold); }
+  .card--silver { border-left: 3px solid var(--silver); }
+  .card--bronze { border-left: 3px solid var(--bronze); }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .rank-badge {
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+    min-width: 28px;
+  }
+
+  .company-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+    flex: 1;
+  }
+
+  .risk-badge {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid currentColor;
+  }
+
+  .score-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .score-label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    min-width: 110px;
+  }
+
+  .score-bar-wrap {
+    flex: 1;
+    height: 5px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .score-bar {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 1s ease;
+  }
+
+  .score-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    min-width: 36px;
+    text-align: right;
+  }
+
+  .score-denom {
+    font-size: 0.65rem;
+    color: var(--muted);
+    font-weight: 400;
+  }
+
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    margin-bottom: 12px;
+  }
+
+  .meta-item {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .rationale {
+    font-size: 12px;
+    color: #7a8c9a;
+    font-style: italic;
+    line-height: 1.5;
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+  }
+
+  .footer {
+    margin-top: 48px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    animation: fadeDown 0.6s 0.3s ease both;
+  }
+
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 600px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .score-label { min-width: 80px; font-size: 9px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="header">
+    <div class="header-tag">Agentic AI Pipeline · OLTA Investments</div>
+    <h1>German Startup<br><span>Investment Screener</span></h1>
+    <div class="header-sub">Scraped → Scored → Ranked · 10 companies analyzed</div>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-val">10</div>
+      <div class="stat-label">Companies</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">7.8</div>
+      <div class="stat-label">Avg Score</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">0</div>
+      <div class="stat-label">Low Risk</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">0</div>
+      <div class="stat-label">High Risk</div>
+    </div>
+  </div>
+
+  <div class="cards">
+    
+        <div class="card card--gold" style="animation-delay: 0.0s">
+            <div class="card-header">
+                <div class="rank-badge">#1</div>
+                <div class="company-name">Helsing</div>
+                <div class="risk-badge" style="color:#f5a623; background:#2e1f00;">Medium Risk</div>
+            </div>
+            <div class="score-row">
+                <span class="score-label">Investment Score</span>
+                <div class="score-bar-wrap">
+                    <div class="score-bar" style="width:100%; background: linear-gradient(90deg, #f5a62388, #f5a623);"></div>
+                </div>
+                <span class="score-num">10<span class="score-denom">/10</span></span>
+            </div>
+            <div class="meta-row">
+                <span class="meta-item">📍 Berlin, Berlin</span>
+                <span class="meta-item">📅 Founded 2021</span>
+                <span class="meta-item">💰 €1.4B</span>
+                <span class="meta-item">🚀 Series D</span>
+            </div>
+            <div class="rationale">"Exceptional funding and cutting-edge AI technology in the defense sector with significant scale and late-stage investment."</div>
+        </div>
+        
+        <div class="card card--silver" style="animation-delay: 0.07s">
+            <div class="card-header">
+                <div class="rank-badge">#2</div>
+                <div class="company-name">Quantum Systems</div>
+                <div class="risk-badge" style="color:#f5a623; background:#2e1f00;">Medium Risk</div>
+            </div>
+            <div class="score-row">
+                <span class="score-label">Investment Score</span>
+                <div class="score-bar-wrap">
+                    <div class="score-bar" style="width:90%; background: linear-gradient(90deg, #f5a62388, #f5a623);"></div>
+                </div>
+                <span class="score-num">9<span class="score-denom">/10</span></span>
+            </div>
+            <div class="meta-row">
+                <span class="meta-item">📍 Gilching, Bayern</span>
+                <span class="meta-item">📅 Founded 2015</span>
+                <span class="meta-item">💰 $388.4M</span>
+                <span class="meta-item">🚀 Series C</span>
+            </div>
+            <div class="rationale">"Exceptional funding and cutting-edge AI-powered eVTOL drones position the company for significant growth in the defense and security sectors."</div>
+        </div>
+        
+        <div class="card card--bronze" style="animation-delay: 0.14s">
+            <div class="card-header">
+                <div class="rank-badge">#3</div>
+                <div class="company-name">DeepL</div>
+                <div class="risk-badge" style="color:#f5a623; background:#2e1f00;">Medium Risk</div>
+            </div>
+            <div class="score-row">
+                <span class="score-label">Investment Score</span>
+                <div class="score-bar-wrap">
+                    <div class="score-bar" style="width:80%; background: linear-gradient(90deg, #f5a62388, #f5a623);"></div>
+                </div>
+                <span class="score-num">8<span class="score-denom">/10</span></span>
+            </div>
+            <div class="meta-row">
+                <span class="meta-item">📍 Cologne, Nordrhein-Westfalen</span>
+                <span class="meta-item">📅 Founded 2017</span>
+                <span class="meta-item">💰 $400M</span>
+                <span class="meta-item">🚀 Venture Round</span>
+            </div>
+            <div class="rationale">"Strong AI focus with significant funding and a solid market presence."</div>
+        </div>
+        
+        <div class="card " style="animation-delay: 0.21000000000000002s">
+            <div class="card-header">
+                <div class="rank-badge">#4</div>
+                <div class="company-name">n8n</div>
+                <div class="risk-badge" style="color:#f5a623; background:#2e1f00;">Medium Risk</div>
+            </div>
+            <div class="score-row">
+                <span class="score-label">Investment Score</span>
+                <div class="score-bar-wrap">
+                    <div class="score-bar" style="width:80%; background: linear-gradient(90deg, #f5a62388, #f5a623);"></div>
+                </div>
+                <span class="score-num">8<span class="score-denom">/10</span></span>
+            </div>
+            <div class="meta-row">
+                <span class="meta-item">📍 Berlin, Berlin</span>
+                <span class="meta-item">📅 Founded 2019</span>
+                <span class="meta-item">💰 $240.3M</span>
+                <span class="meta-item">🚀 Series C</span>
+            </div>
+            <div class="rationale">"Strong funding and cutting-edge AI sector presence with a Series C stage, but not yet exceptional due to funding below 500M threshold."</div>
+        </div>
+        
+        <div class="card " style="animation-delay: 0.28s">
+            <div class="card-header">
+                <div class="rank-badge">#5</div>
+                <div class="company-name">Black Forest Labs</div>
+                <div class="risk-badge" style="color:#f5a623; background:#2e1f00;">Medium Risk</div>
+            </div>
+            <div class="score-row">
+                <span class="score-label">Investment Score</span>
+                <div class="score-bar-wrap">
+                    <div class="score-bar" style="width:80%; background: linear-gradient(90deg, #f5a62388, #f5a623);"></div>
+                </div>
+                <span class="score-num">8<span class="score-denom">/10</span></span>
+            </div>
+            <div class="meta-row">
+                <span class="meta-item">📍 Freiburg Im Breisgau, Baden-Wurttemberg</span>
+                <span class="meta-item">📅 Founded 2024</span>
+                <span class="meta-item">💰 $450.2M</span>
+                <span class="meta-item">🚀 Series B</span>
+            </div>
+            <div class="rationale">"Strong AI focus with significant funding and a large team, but not yet at Series C stage."</div>
+        </div>
+        
+        <div class="card " style="animation-delay: 0.35000000000000003s">
+            <div class="card-header">
+                <div class="rank-badge">#6</div>
+                <div class="company-name">Cognigy</div>
+                <div class="risk-badge" style="color:#f5a623; background:#2e1f00;">Medium Risk</div>
+            </div>
+            <div class="score-row">
+                <span class="score-label">Investment Score</span>
+                <div class="score-bar-wrap">
+                    <div class="score-bar" style="width:80%; background: linear-gradient(90deg, #f5a62388, #f5a623);"></div>
+                </div>
+                <span class="score-num">8<span class="score-denom">/10</span></span>
+            </div>
+            <div class="meta-row">
+                <span class="meta-item">📍 Düsseldorf, Nordrhein-Westfalen</span>
+                <span class="meta-item">📅 Founded 2016</span>
+                <span class="meta-item">💰 $169M</span>
+                <span class="meta-item">🚀 Series C</span>
+            </div>
+            <div class="rationale">"Strong AI focus with significant funding and established customer support process automation technology."</div>
+        </div>
+        
+        <div class="card " style="animation-delay: 0.42000000000000004s">
+            <div class="card-header">
+                <div class="rank-badge">#7</div>
+                <div class="company-name">Upvest</div>
+                <div class="risk-badge" style="color:#f5a623; background:#2e1f00;">Medium Risk</div>
+            </div>
+            <div class="score-row">
+                <span class="score-label">Investment Score</span>
+                <div class="score-bar-wrap">
+                    <div class="score-bar" style="width:80%; background: linear-gradient(90deg, #f5a62388, #f5a623);"></div>
+                </div>
+                <span class="score-num">8<span class="score-denom">/10</span></span>
+            </div>
+            <div class="meta-row">
+                <span class="meta-item">📍 Berlin, Berlin</span>
+                <span class="meta-item">📅 Founded 2017</span>
+                <span class="meta-item">💰 $199.2M</span>
+                <span class="meta-item">🚀 Series C</span>
+            </div>
+            <div class="rationale">"Upvest has strong funding and a solid position in the fintech sector, enabling businesses to offer investment services to their customers."</div>
+        </div>
+        
+        <div class="card " style="animation-delay: 0.49000000000000005s">
+            <div class="card-header">
+                <div class="rank-badge">#8</div>
+                <div class="company-name">Parloa</div>
+                <div class="risk-badge" style="color:#f5a623; background:#2e1f00;">Medium Risk</div>
+            </div>
+            <div class="score-row">
+                <span class="score-label">Investment Score</span>
+                <div class="score-bar-wrap">
+                    <div class="score-bar" style="width:80%; background: linear-gradient(90deg, #f5a62388, #f5a623);"></div>
+                </div>
+                <span class="score-num">8<span class="score-denom">/10</span></span>
+            </div>
+            <div class="meta-row">
+                <span class="meta-item">📍 Berlin, Berlin</span>
+                <span class="meta-item">📅 Founded 2017</span>
+                <span class="meta-item">💰 $212M</span>
+                <span class="meta-item">🚀 Series C</span>
+            </div>
+            <div class="rationale">"Strong AI focus with significant funding and established customer service automation platform."</div>
+        </div>
+        
+        <div class="card " style="animation-delay: 0.56s">
+            <div class="card-header">
+                <div class="rank-badge">#9</div>
+                <div class="company-name">FERNRIDE</div>
+                <div class="risk-badge" style="color:#f5a623; background:#2e1f00;">Medium Risk</div>
+            </div>
+            <div class="score-row">
+                <span class="score-label">Investment Score</span>
+                <div class="score-bar-wrap">
+                    <div class="score-bar" style="width:70%; background: linear-gradient(90deg, #f5a62388, #f5a623);"></div>
+                </div>
+                <span class="score-num">7<span class="score-denom">/10</span></span>
+            </div>
+            <div class="meta-row">
+                <span class="meta-item">📍 Munich, Bayern</span>
+                <span class="meta-item">📅 Founded 2019</span>
+                <span class="meta-item">💰 $82.1M</span>
+                <span class="meta-item">🚀 Series A</span>
+            </div>
+            <div class="rationale">"Strong autonomous driving technology with good funding, but still in Series A stage."</div>
+        </div>
+        
+        <div class="card " style="animation-delay: 0.6300000000000001s">
+            <div class="card-header">
+                <div class="rank-badge">#10</div>
+                <div class="company-name">GetYourGuide</div>
+                <div class="risk-badge" style="color:#f5a623; background:#2e1f00;">Medium Risk</div>
+            </div>
+            <div class="score-row">
+                <span class="score-label">Investment Score</span>
+                <div class="score-bar-wrap">
+                    <div class="score-bar" style="width:40%; background: linear-gradient(90deg, #f5a62388, #f5a623);"></div>
+                </div>
+                <span class="score-num">4<span class="score-denom">/10</span></span>
+            </div>
+            <div class="meta-row">
+                <span class="meta-item">📍 Berlin, Berlin</span>
+                <span class="meta-item">📅 Founded 2009</span>
+                <span class="meta-item">💰 $1.1B</span>
+                <span class="meta-item">🚀 Debt Financing</span>
+            </div>
+            <div class="rationale">"Large team and significant funding, but debt financing stage and lack of cutting-edge sector presence detract from attractiveness."</div>
+        </div>
+        
+  </div>
+
+  <div class="footer">
+    OLTA Investment Screener · Powered by Groq LLM · Data: Failory.com
+  </div>
+</div>
+</body>
+</html>
