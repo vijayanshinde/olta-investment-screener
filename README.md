@@ -12,7 +12,7 @@ using an LLM, and outputs a ranked investment shortlist, with a visual dashboard
 5. Generates a visual HTML dashboard — open in any browser, no server needed
 
 ## Project structure
-
+```
 olta_agent/
 ├── scraper.py            # Web scraping logic (requests + BeautifulSoup)
 ├── scorer.py             # LLM agent scoring loop (Groq API)
@@ -23,6 +23,7 @@ olta_agent/
 ├── .env                  # API keys (never commit this)
 ├── .gitignore            # Ensures .env is excluded from git
 └── README.md
+```
 
 ## Setup
 
