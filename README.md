@@ -1,7 +1,7 @@
 # German Startup Investment Screener
 
 An end-to-end agentic pipeline that scrapes German startup data, scores each company
-using an LLM, and outputs a ranked investment shortlist — with a visual dashboard.
+using an LLM, and outputs a ranked investment shortlist, with a visual dashboard.
 
 ## What it does
 
@@ -29,7 +29,7 @@ olta_agent/
 pip install requests beautifulsoup4 groq python-dotenv pandas
 
 Add your API key to .env:
-GROQ_API_KEY=your_key_here
+GROQ_API_KEY=xxxxxxxxxxxxxxxxx
 
 ## Run
 
