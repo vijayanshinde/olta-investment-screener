@@ -1,7 +1,7 @@
 import pandas as pd
 from scraper import scrape_startups
 from scorer import score_all
-from report import generate_html          # ADD THIS
+from report import generate_html          
 
 def main():
     print("=== Step 1: Scraping companies ===")
@@ -22,7 +22,7 @@ def main():
     output_path = "ranked_companies.csv"
     df.to_csv(output_path, index_label="rank")
 
-    generate_html()                        # ADD THIS
+    generate_html()                        
 
     print(f"\nDone. Results saved to {output_path}")
     print("\n--- Top 5 ---")
