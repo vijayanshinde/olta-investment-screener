@@ -67,5 +67,5 @@ changing only the client initialization in scorer.py.
 ## Notes
 
 - To scale beyond 10 companies, change max_companies in main.py
-- The .env file must never be committed to GitHub — check .gitignore
-- Groq free tier has rate limits — scorer.py includes a 0.5s delay per call
+- The .env file must never be committed to GitHub, check .gitignore
+- Groq free tier has rate limits, scorer.py includes a 0.5s delay per call
